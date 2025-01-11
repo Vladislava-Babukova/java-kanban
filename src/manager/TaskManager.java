@@ -1,4 +1,5 @@
-
+package manager;
+import manager.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,3 +1,9 @@
+import manager.Status;
+import manager.TaskManager;
+import manager.model.Epic;
+import manager.model.SubTask;
+import manager.model.Task;
+
 public class Main {
     public static void main(String[] args) {
         TaskManager taskManager = new TaskManager();

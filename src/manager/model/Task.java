@@ -1,3 +1,6 @@
+package manager.model;
+
+import manager.Status;
 
 public class Task {
     private String name;

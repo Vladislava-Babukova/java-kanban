@@ -1,5 +1,9 @@
+package manager.model;
+
+import manager.Status;
+
 public class SubTask extends Task {
-    int epicId;
+    private int epicId;
 
     public SubTask(String name, String details, int epicId) {
         super(name, details);
