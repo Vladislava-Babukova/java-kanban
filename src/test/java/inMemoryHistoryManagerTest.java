@@ -4,6 +4,7 @@ import main.manager.HistoryManager;
 import main.manager.Managers;
 import main.manager.TaskManager;
 import main.manager.model.Task;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -11,13 +12,16 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class inMemoryHistoryManagerTest {
-    HistoryManager historyManager = Managers.getDefaultHistoryTaskManager();
-    TaskManager manager = Managers.getDefaultTaskManager();
+    HistoryManager historyManager = Managers.getDefaultHistoryManager();
+    @BeforeEach
+            void getManager(){
+        TaskManager manager = Managers.getDefaultTaskManager();
+    }
 
     @Test
     void addTaskInHistory() {
         Task task = new Task("Task", "Test");
-        historyManager.addTaskInHistory(task);
+        historyManager.add(task);
         List<Task> history = historyManager.getHistory();
         assertEquals(1, history.size(), "Содержание истории отличается");
         assertEquals(task, history.get(0), "Задание не совпадает");
@@ -26,11 +30,11 @@ class inMemoryHistoryManagerTest {
     @Test
     void whenGetHistoryUpdaitTask() {
         Task task = new Task("TTask", "Test ");
-        historyManager.addTaskInHistory(task);
+        historyManager.add(task);
         Task correctTask = task;
         Task newTask = new Task("Task44444444", "Test ");
         task = newTask;
-        historyManager.addTaskInHistory(task);
+        historyManager.add(task);
         final List<Task> history = historyManager.getHistory();
         assertEquals(correctTask, history.get(0), "содержание не соответствует");
         assertEquals(task, history.get(1), "содержание не соответствует");
@@ -40,7 +44,7 @@ class inMemoryHistoryManagerTest {
     void shouldNotExceedHistoryLimit() {
         for (int i = 1; i <= 15; i++) {
             Task task = new Task("Task " + i, "Test " + i);
-            historyManager.addTaskInHistory(task);
+            historyManager.add(task);
         }
 
         List<Task> history = historyManager.getHistory();

@@ -17,7 +17,7 @@ class ManagersTest {
 
     @Test
     void getDefaultHistoryTaskManager() {
-        HistoryManager historyManager = Managers.getDefaultHistoryTaskManager();
+        HistoryManager historyManager = Managers.getDefaultHistoryManager();
         assertNotNull(historyManager, "Объект не создан");
     }
 }

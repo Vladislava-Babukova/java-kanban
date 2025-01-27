@@ -9,14 +9,14 @@ import java.util.Objects;
 public class inMemoryHistoryManager implements HistoryManager<Task> {
 
     private final ArrayList<Task> historyList = new ArrayList<>();
-
+static final int historySize = 10;
     @Override
-    public void addTaskInHistory(Task task) {
+    public void add(Task task) {
         if (Objects.isNull(task)) {
             return;
         }
         historyList.add(new Task(task.getName(), task.getDetails(), task.getId(), task.getStatus()));
-        if (historyList.size() > 10) {
+        if (historyList.size() > historySize) {
             historyList.remove(0);
         }
     }
