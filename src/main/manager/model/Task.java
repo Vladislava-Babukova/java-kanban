@@ -1,6 +1,8 @@
-package manager.model;
+package main.manager.model;
 
-import manager.Status;
+import main.manager.Status;
+
+import java.util.Objects;
 
 public class Task {
     private String name;
@@ -59,4 +61,19 @@ public class Task {
                 ", status=" + status +
                 '}';
     }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return id == task.id &&
+                Objects.equals(name, task.name) &&
+                Objects.equals(details, task.details) &&
+                status == task.status;
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, details, id, status);
+    }
+
 }
