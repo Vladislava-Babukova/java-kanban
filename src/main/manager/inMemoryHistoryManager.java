@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class inMemoryHistoryManager implements HistoryManager<Task> {
+public class inMemoryHistoryManager implements HistoryManager {
 
-    private final ArrayList<Task> historyList = new ArrayList<>();
-static final int historySize = 10;
+    private final List<Task> historyList = new ArrayList<>();
+    static final int historySize = 10;
+
     @Override
     public void add(Task task) {
         if (Objects.isNull(task)) {

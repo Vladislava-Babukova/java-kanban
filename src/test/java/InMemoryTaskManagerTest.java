@@ -6,6 +6,7 @@ import main.manager.TaskManager;
 import main.manager.model.Epic;
 import main.manager.model.SubTask;
 import main.manager.model.Task;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -14,7 +15,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
-    TaskManager manager = Managers.getDefaultTaskManager();
+    TaskManager manager;
+    @BeforeEach
+    void getManager() {
+        manager = Managers.getDefaultTaskManager();
+    }
 
     @Test
     void whenAddTask() {
