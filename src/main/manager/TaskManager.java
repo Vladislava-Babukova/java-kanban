@@ -30,17 +30,17 @@ public interface TaskManager {
 
     SubTask getSubTask(int id);
 
-    void deleteAllTascs();
+    void deleteAllTasks();
 
     void deleteForId(int id);
 
-    ArrayList getAllTusks();
+    List getAllTasks();
 
-    ArrayList getAllEpics();
+    List getAllEpics();
 
-    ArrayList getAllSubTusks();
+    List getAllSubTasks();
 
-    ArrayList getSubtaskForEpic(Epic epic);
+    List getSubtaskForEpic(Epic epic);
 
     public List<Task> getHistory();
 }

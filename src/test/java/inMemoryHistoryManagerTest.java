@@ -13,9 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class inMemoryHistoryManagerTest {
     HistoryManager historyManager = Managers.getDefaultHistoryManager();
+
     @BeforeEach
-            void getManager(){
+    void getManager() {
         TaskManager manager = Managers.getDefaultTaskManager();
+        historyManager = Managers.getDefaultHistoryManager();
     }
 
     @Test

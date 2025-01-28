@@ -47,7 +47,7 @@ public class Main {
 
     private static void printAllTasks(TaskManager manager) {
         System.out.println("Задачи:");
-        for (Object task : manager.getAllTusks()) {
+        for (Object task : manager.getAllTasks()) {
             System.out.println(task);
         }
         System.out.println("Эпики:");
@@ -59,7 +59,7 @@ public class Main {
         }
 
         System.out.println("Подзадачи:");
-        for (Object subtask : manager.getAllSubTusks()) {
+        for (Object subtask : manager.getAllSubTasks()) {
             System.out.println(subtask);
         }
 

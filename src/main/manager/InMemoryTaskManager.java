@@ -140,7 +140,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteAllTascs() {
+    public void deleteAllTasks() {
         tasks.clear();
         epics.clear();
         subtasks.clear();
@@ -172,7 +172,7 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     @Override
-    public ArrayList getAllTusks() {
+    public List getAllTasks() {
         return new ArrayList<>(tasks.values());
     }
 
@@ -182,7 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList getAllSubTusks() {
+    public List getAllSubTasks() {
         return new ArrayList<>(subtasks.values());
     }
 
