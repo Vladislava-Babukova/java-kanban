@@ -92,7 +92,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void WhenAddSubTaskInEpic() {
+    void whenAddSubTaskInEpic() {
         SubTask subTask = new SubTask("subTask", "1", 20, 20, Status.IN_PROGRESS);
         manager.addSubTask(subTask);
         Epic epic = new Epic("Epic", "1", 20);
@@ -103,7 +103,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void WhenDeleteTuskSubtuskEpic() {
+    void whenDeleteTuskSubtuskEpic() {
         Task task = new Task("Task", "1");
         manager.addTask(task);
         Epic epic = new Epic("Epic", "2");
