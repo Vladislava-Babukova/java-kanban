@@ -17,6 +17,10 @@ public class Epic extends Task {
     public List<Integer> getSubTasksinEpic() {
         return subTasksList;
     }
+
+    public void setSubTasksList(List<Integer> subTasksList) {
+        this.subTasksList = subTasksList;
+    }
 }
 
 

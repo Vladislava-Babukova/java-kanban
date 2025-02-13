@@ -9,13 +9,13 @@ import main.manager.model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
     TaskManager manager;
+
     @BeforeEach
     void getManager() {
         manager = Managers.getDefaultTaskManager();
@@ -92,7 +92,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void WhenAddSubTaskInEpic() {
+    void whenAddSubTaskInEpic() {
         SubTask subTask = new SubTask("subTask", "1", 20, 20, Status.IN_PROGRESS);
         manager.addSubTask(subTask);
         Epic epic = new Epic("Epic", "1", 20);
@@ -103,7 +103,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void WhenDeleteTuskSubtuskEpic() {
+    void whenDeleteTuskSubtuskEpic() {
         Task task = new Task("Task", "1");
         manager.addTask(task);
         Epic epic = new Epic("Epic", "2");
@@ -117,6 +117,17 @@ class InMemoryTaskManagerTest {
         assertNull(manager.getSubTask(subTask.getId()), "Задача не удалена");
     }
 
+    @Test
+    void subtaskShouldBeRemovedFromList() {
+        Epic epic = new Epic("Сходить в магазин", "купить еды");
+        manager.addEpic(epic);
+        SubTask subTask2 = new SubTask("Запустить посудомойку", "на режиме эко", epic.getId());
+        manager.addSubTask(subTask2);
+        manager.deleteForId(subTask2.getId());
+        List<Integer> subtasksInEpicAfter = epic.getSubTasksinEpic();
+        assertFalse(subtasksInEpicAfter.contains(subTask2.getId()), "Список подзадач не должен содержать " +
+                "subTask2.getId() после удаления");
+    }
 
     @Test
     void whenUpdateTask() {
