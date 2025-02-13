@@ -33,13 +33,13 @@ public interface TaskManager {
 
     void deleteForId(int id);
 
-    List getAllTasks();
+    List<Task> getAllTasks();
 
-    List getAllEpics();
+    List<Epic> getAllEpics();
 
-    List getAllSubTasks();
+    List<SubTask> getAllSubTasks();
 
-    List getSubtaskForEpic(Epic epic);
+    List<SubTask> getSubtaskForEpic(Epic epic);
 
     public List<Task> getHistory();
 }
