@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class ManagersTest {
 
     @Test
-    void WhengetDefaultTaskManager() {
+    void whenGetDefaultTaskManager() {
         TaskManager taskManager = Managers.getDefaultTaskManager();
         assertNotNull(taskManager, "Объект не создан");
     }

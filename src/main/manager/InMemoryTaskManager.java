@@ -141,15 +141,26 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
+        for (int id : tasks.keySet()) {
+            historyManager.remove(id);
+        }
+        for (int id : epics.keySet()) {
+            historyManager.remove(id);
+        }
+        for (int id : subtasks.keySet()) {
+            historyManager.remove(id);
+        }
         tasks.clear();
         epics.clear();
         subtasks.clear();
+
     }
 
     @Override
     public void deleteForId(int id) {
         if (tasks.containsKey(id)) {
             tasks.remove(id);
+            historyManager.remove(id);
         }
         if (epics.containsKey(id)) {
             for (Integer i : epics.get(id).getSubTasksinEpic()) {
@@ -160,34 +171,47 @@ public class InMemoryTaskManager implements TaskManager {
                     }
                 }
                 subtasks.remove(delSubTask);
+                historyManager.remove(delSubTask);
             }
             epics.remove(id);
+            historyManager.remove(id);
 
         }
         if (subtasks.containsKey(id)) {
+            List<Integer> subTasksList = new ArrayList<>();
+            for (Epic epic : epics.values()) {
+                subTasksList = epic.getSubTasksinEpic();
+                if (epic.getSubTasksinEpic().contains(id)) {
+                    Integer i = id;
+                    subTasksList.remove(i);
+                    epic.setSubTasksList(subTasksList);
+                    break;
+                }
+            }
             subtasks.remove(id);
+            historyManager.remove(id);
 
         }
     }
 
 
     @Override
-    public List getAllTasks() {
+    public List<Task>  getAllTasks() {
         return new ArrayList<>(tasks.values());
     }
 
     @Override
-    public List getAllEpics() {
+    public List<Epic>  getAllEpics() {
         return new ArrayList<>(epics.values());
     }
 
     @Override
-    public List getAllSubTasks() {
+    public List<SubTask>  getAllSubTasks() {
         return new ArrayList<>(subtasks.values());
     }
 
     @Override
-    public List getSubtaskForEpic(Epic epic) {
+    public List<SubTask>  getSubtaskForEpic(Epic epic) {
         List<SubTask> subTasksList = new ArrayList<>();
         for (Integer subTaskId : epic.getSubTasksinEpic()) {
             for (Integer i : subtasks.keySet()) {

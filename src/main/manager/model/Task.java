@@ -61,6 +61,7 @@ public class Task {
                 ", status=" + status +
                 '}';
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -71,6 +72,7 @@ public class Task {
                 Objects.equals(details, task.details) &&
                 status == task.status;
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(name, details, id, status);
