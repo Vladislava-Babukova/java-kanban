@@ -9,6 +9,7 @@ public class Task {
     private String details;
     private int id;
     private Status status;
+    private TypeTask type;
 
     public Task(String name, String details) {
         this.name = name;
@@ -16,6 +17,13 @@ public class Task {
     }
 
     public Task(String name, String details, int id, Status status) {
+        this.name = name;
+        this.details = details;
+        this.id = id;
+        this.status = status;
+    }
+
+    public Task(int id, String name, Status status, String details) {
         this.name = name;
         this.details = details;
         this.id = id;
