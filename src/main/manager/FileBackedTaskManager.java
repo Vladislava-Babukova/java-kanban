@@ -83,7 +83,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     fileWriter.write(toString(subTask) + "\n");
                 }
             }
-        } catch (ManagerSaveException | IOException e) {
+        } catch (IOException e) {
             throw new ManagerSaveException("Невозможно работать с файлом");
         }
     }
@@ -93,7 +93,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String back = "";
         try {
             back = Files.readString(Path.of(backupFile.toString()));
-        } catch (ManagerLoadExeption | IOException exception) {
+        } catch (IOException exception) {
             throw new ManagerLoadExeption("Ошибка чтения файла");
         }
         String[] tasks = back.split("\n");
@@ -118,8 +118,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         epic.setSubTasksList(subtasksList);
                         result.updateEpic(epic);
                     } else {
-                        System.out.println("Не получилось привязаться к Эпикам");
-                        System.exit(1);
+                        throw new ManagerLoadExeption("Ошибка привязки к эпикам");
                     }
                 }
 
