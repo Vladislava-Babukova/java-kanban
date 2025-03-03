@@ -1,5 +1,6 @@
 package test.java;
 
+import main.manager.FileBackedTaskManager;
 import main.manager.HistoryManager;
 import main.manager.Managers;
 import main.manager.TaskManager;
@@ -11,7 +12,7 @@ class ManagersTest {
 
     @Test
     void whenGetDefaultTaskManager() {
-        TaskManager taskManager = Managers.getDefaultTaskManager();
+        TaskManager taskManager = Managers.getTaskManager();
         assertNotNull(taskManager, "Объект не создан");
     }
 
@@ -19,5 +20,11 @@ class ManagersTest {
     void getDefaultHistoryTaskManager() {
         HistoryManager historyManager = Managers.getDefaultHistoryManager();
         assertNotNull(historyManager, "Объект не создан");
+    }
+
+    @Test
+    void getDefaultFileBackedTaskManager() {
+        FileBackedTaskManager fileBackedTaskManager = Managers.getFileBackedTaskManager();
+        assertNotNull(fileBackedTaskManager, "Объект не создан");
     }
 }

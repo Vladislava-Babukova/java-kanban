@@ -11,12 +11,12 @@ import java.util.Map;
 
 
 public class InMemoryTaskManager implements TaskManager {
-    private int idCusnom = 0;
+    private int idCustom = 0;
 
 
-    private Map<Integer, Task> tasks = new HashMap<>();
-    private Map<Integer, Epic> epics = new HashMap<>();
-    private Map<Integer, SubTask> subtasks = new HashMap<>();
+    protected Map<Integer, Task> tasks = new HashMap<>();
+    protected Map<Integer, Epic> epics = new HashMap<>();
+    protected Map<Integer, SubTask> subtasks = new HashMap<>();
 
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
@@ -64,11 +64,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    @Override
-    public void epicStatus() {
-
-    }
-
 
     @Override
     public void updateTask(Task newtask) {
@@ -86,35 +81,56 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     @Override
-    public Task addTask(Task task) {
-        task.setId(++idCusnom);
+    public void addTask(Task task) {
+        task.setId(checIDCustom());
         task.setStatus(Status.NEW);
-        tasks.put(idCusnom, task);
-        return task;
+        tasks.put(idCustom, task);
     }
 
 
     @Override
-    public Epic addEpic(Epic epic) {
-        epic.setId(++idCusnom);
+    public void addEpic(Epic epic) {
+        epic.setId(checIDCustom());
         epic.setStatus(Status.NEW);
-        epics.put(idCusnom, epic);
-        return epic;
+        epics.put(idCustom, epic);
     }
 
+    @Override
+    public Integer checIDCustom() {
+        for (Integer id : tasks.keySet()) {
+            if (idCustom < id) {
+                idCustom = id;
+
+            }
+        }
+        for (Integer id : epics.keySet()) {
+            if (idCustom < id) {
+                idCustom = id;
+
+            }
+        }
+        for (Integer id : subtasks.keySet()) {
+            if (idCustom < id) {
+                idCustom = id;
+
+            }
+        }
+        idCustom++;
+        return idCustom;
+    }
 
     @Override
-    public SubTask addSubTask(SubTask subTask) {
-        subTask.setId(++idCusnom);
+    public void addSubTask(SubTask subTask) {
+
+        subTask.setId(checIDCustom());
         subTask.setStatus(Status.NEW);
         for (Epic epicis : epics.values())
             if (epicis.getId() == subTask.getEpicId()) {
-                subtasks.put(idCusnom, subTask);
+                subtasks.put(idCustom, subTask);
                 Epic epic = epics.get(subTask.getEpicId());
                 epic.getSubTasksinEpic().add(subTask.getId());
                 epics.put(epic.getId(), epic);
             }
-        return subTask;
     }
 
 
@@ -196,22 +212,22 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     @Override
-    public List<Task>  getAllTasks() {
+    public List<Task> getAllTasks() {
         return new ArrayList<>(tasks.values());
     }
 
     @Override
-    public List<Epic>  getAllEpics() {
+    public List<Epic> getAllEpics() {
         return new ArrayList<>(epics.values());
     }
 
     @Override
-    public List<SubTask>  getAllSubTasks() {
+    public List<SubTask> getAllSubTasks() {
         return new ArrayList<>(subtasks.values());
     }
 
     @Override
-    public List<SubTask>  getSubtaskForEpic(Epic epic) {
+    public List<SubTask> getSubtaskForEpic(Epic epic) {
         List<SubTask> subTasksList = new ArrayList<>();
         for (Integer subTaskId : epic.getSubTasksinEpic()) {
             for (Integer i : subtasks.keySet()) {

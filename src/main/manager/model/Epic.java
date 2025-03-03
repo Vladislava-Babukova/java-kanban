@@ -1,5 +1,7 @@
 package main.manager.model;
 
+import main.manager.Status;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,10 @@ public class Epic extends Task {
 
     public Epic(String name, String details) {
         super(name, details);
+    }
+
+    public Epic(int id, String name, Status status, String details) {
+        super(id, name, status, details);
     }
 
     public Epic(String name, String details, int id) {

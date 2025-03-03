@@ -11,17 +11,16 @@ public interface TaskManager {
 
     void updateEpic(Epic newEpic);
 
-    void epicStatus();
 
     void updateTask(Task newtask);
 
     void updateSubTask(SubTask newSubTask);
 
-    Task addTask(Task task);
+    void addTask(Task task);
 
-    Task addEpic(Epic epic);
+    void addEpic(Epic epic);
 
-    Task addSubTask(SubTask subTask);
+    void addSubTask(SubTask subTask);
 
     Task getTask(int id);
 
@@ -42,5 +41,8 @@ public interface TaskManager {
     List<SubTask> getSubtaskForEpic(Epic epic);
 
     public List<Task> getHistory();
+
+    public Integer checIDCustom();
+
 }
 
