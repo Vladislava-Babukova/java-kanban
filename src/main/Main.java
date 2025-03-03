@@ -18,13 +18,8 @@ public class Main {
         FileBackedTaskManager manager = Managers.getFileBackedTaskManager();
         backupFile = manager.createFileExistence();
 
-        try {
-            printInPreviousSprint(backupFile);
-        } catch (ManagerSaveException e) {
-            System.out.println("Перезапустите метод main()");
 
-
-        }
+        printInPreviousSprint(backupFile);
 
 
     }
@@ -33,20 +28,20 @@ public class Main {
     private static void printInPreviousSprint(Path backupFile) {
         FileBackedTaskManager manager2 = FileBackedTaskManager.loadFromFile(backupFile);
 
-        Task task = new Task("Почистить зубы", "иначе отвалятся");
-        manager2.addTask(task);
-        Task task1 = new Task("Запустить стирку", "белое");
-        manager2.addTask(task1);
-        Epic epic = new Epic("Сходить в магазин", "купить еды");
-        manager2.addEpic(epic);
-        SubTask subTask2 = new SubTask("Запустить посудомойку", "на режиме эко", epic.getId());
-        manager2.addSubTask(subTask2);
-        SubTask subTask1 = new SubTask("Протереть столы", "начисто", epic.getId());
-        manager2.addSubTask(subTask1);
-        SubTask subTask = new SubTask("составить список покупок", "не забыть", epic.getId());
-        manager2.addSubTask(subTask);
-        Epic epic1 = new Epic("Сходить на тренировку", "в 7 вечера");
-        manager2.addEpic(epic1);
+//        Task task = new Task("Почистить зубы", "иначе отвалятся");
+//        manager2.addTask(task);
+//        Task task1 = new Task("Запустить стирку", "белое");
+//        manager2.addTask(task1);
+//        Epic epic = new Epic("Сходить в магазин", "купить еды");
+//        manager2.addEpic(epic);
+//        SubTask subTask2 = new SubTask("Запустить посудомойку", "на режиме эко", epic.getId());
+//        manager2.addSubTask(subTask2);
+//        SubTask subTask1 = new SubTask("Протереть столы", "начисто", epic.getId());
+//        manager2.addSubTask(subTask1);
+//        SubTask subTask = new SubTask("составить список покупок", "не забыть", epic.getId());
+//        manager2.addSubTask(subTask);
+//        Epic epic1 = new Epic("Сходить на тренировку", "в 7 вечера");
+//        manager2.addEpic(epic1);
 
 
         System.out.println(manager2.getEpic(3));

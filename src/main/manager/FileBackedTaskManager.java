@@ -1,5 +1,6 @@
 package main.manager;
 
+import exceptions.ManagerLoadExeption;
 import exceptions.ManagerSaveException;
 import main.manager.model.Epic;
 import main.manager.model.SubTask;
@@ -59,7 +60,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return string;
     }
 
-    void save() throws ManagerSaveException {
+    void save() {
         List<Task> tasks = getAllTasks();
         List<Epic> epics = getAllEpics();
         List<SubTask> subTasks = getAllSubTasks();
@@ -82,7 +83,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     fileWriter.write(toString(subTask) + "\n");
                 }
             }
-        } catch (IOException e) {
+        } catch (ManagerSaveException | IOException e) {
             throw new ManagerSaveException("Невозможно работать с файлом");
         }
     }
@@ -92,8 +93,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String back = "";
         try {
             back = Files.readString(Path.of(backupFile.toString()));
-        } catch (IOException exception) {
-            System.out.println("Ошибка чтения файла");
+        } catch (ManagerLoadExeption | IOException exception) {
+            throw new ManagerLoadExeption("Ошибка чтения файла");
         }
         String[] tasks = back.split("\n");
         for (int i = 1; i < tasks.length; i++) {
@@ -105,8 +106,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     System.out.println("Эпик вернулся как null");
                 }
             } else if (tasks[i].contains(TypeTask.SUBTASK.toString())) {
-                try {
-                    SubTask subTask = (SubTask) fromString(tasks[i]);
+
+                SubTask subTask = (SubTask) fromString(tasks[i]);
+                if (!(subTask == null)) {
                     result.subtasks.put(subTask.getId(), subTask);
                     Epic epic;
                     epic = result.epics.get(subTask.getEpicId());
@@ -117,10 +119,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         result.updateEpic(epic);
                     } else {
                         System.out.println("Не получилось привязаться к Эпикам");
+                        System.exit(1);
                     }
-                } catch (NullPointerException e) {
-                    System.out.println("Подзадача вернулась как null");
                 }
+
             } else {
                 try {
                     Task task = fromString(tasks[i]);
