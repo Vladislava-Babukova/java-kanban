@@ -1,3 +1,5 @@
+package projectTest;
+
 import main.manager.FileBackedTaskManager;
 import main.manager.model.Task;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +12,11 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+    @Override
+    protected FileBackedTaskManager getNewManager() {
+        return null;
+    }
 
     FileBackedTaskManager manager;
     Task task;
@@ -22,7 +28,7 @@ public class FileBackedTaskManagerTest {
         tempFile = File.createTempFile("test_tasks", ".csv");
         backupFile = tempFile.toPath(); // Получаем Path из File
         manager = new FileBackedTaskManager(backupFile);
-        task = new Task("Task1", "1");
+        task = new Task("Task1", "1", "20.03.2024 17:20", 15);
     }
 
 
@@ -43,4 +49,6 @@ public class FileBackedTaskManagerTest {
         assertEquals(manager.getTask(1).getName(), manager2.getTask(1).getName(), "Задача не совпадает с сохранённой");
 
     }
+
+
 }

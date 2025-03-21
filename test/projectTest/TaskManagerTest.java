@@ -1,4 +1,4 @@
-package test.java;
+package projectTest;
 
 import main.manager.Managers;
 import main.manager.Status;
@@ -13,16 +13,18 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
+abstract class TaskManagerTest<T extends TaskManager> {
     TaskManager manager;
 
+    protected abstract T getNewManager();
+
     @BeforeEach
-    void getManager() {
+    protected void getManager() {
         manager = Managers.getTaskManager();
     }
 
     @Test
-    void whenAddTask() {
+    public void whenAddTask() {
         Task task = new Task("Task", "1");
         manager.addTask(task);
 
@@ -39,8 +41,9 @@ class InMemoryTaskManagerTest {
         assertEquals(task.getDetails(), savedTask.getDetails(), "Описание не совпадает");
     }
 
+
     @Test
-    void whenAddEpic() {
+    public void whenAddEpic() {
         Epic epic = new Epic("Epic", "1");
         manager.addEpic(epic);
         final int epicId = epic.getId();
@@ -59,10 +62,10 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void whenAddSubTask() {
+    public void whenAddSubTask() {
         Epic epic = new Epic("Epic", "1");
         manager.addEpic(epic);
-        SubTask subTask = new SubTask("SubTask", "1", epic.getId());
+        SubTask subTask = new SubTask("SubTask", "1", epic.getId(), "03.03.2024 11:11", 7);
         manager.addSubTask(subTask);
         final int subTaskId = subTask.getId();
 
@@ -81,10 +84,10 @@ class InMemoryTaskManagerTest {
 
 
     @Test
-    void whenAddEpicInSubTask() {
+    public void whenAddEpicInSubTask() {
         Epic epic = new Epic("Epic", "1");
         manager.addEpic(epic);
-        SubTask subTask = new SubTask("SubTask", "1", epic.getId(), epic.getId(), Status.NEW);
+        SubTask subTask = new SubTask("SubTask", "1", epic.getId(), epic.getId(), Status.NEW, "01.01.2024 17:17", 17);
         manager.addSubTask(subTask);
         int subtaskId = subTask.getId();
         int epicId = epic.getId();
@@ -92,8 +95,8 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void whenAddSubTaskInEpic() {
-        SubTask subTask = new SubTask("subTask", "1", 20, 20, Status.IN_PROGRESS);
+    public void whenAddSubTaskInEpic() {
+        SubTask subTask = new SubTask("subTask", "1", 20, 20, Status.IN_PROGRESS, "11.11.2024 11:20", 8);
         manager.addSubTask(subTask);
         Epic epic = new Epic("Epic", "1", 20);
         manager.addEpic(epic);
@@ -103,12 +106,12 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void whenDeleteTuskSubtuskEpic() {
+    public void whenDeleteTuskSubtuskEpic() {
         Task task = new Task("Task", "1");
         manager.addTask(task);
         Epic epic = new Epic("Epic", "2");
         manager.addEpic(epic);
-        SubTask subTask = new SubTask("SubTask", "3", epic.getId());
+        SubTask subTask = new SubTask("SubTask", "3", epic.getId(), "07.07.2024 14:07", 15);
         manager.addSubTask(subTask);
         manager.deleteForId(task.getId());
         manager.deleteForId(epic.getId());
@@ -118,7 +121,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void subtaskShouldBeRemovedFromList() {
+    public void subtaskShouldBeRemovedFromList() {
         Epic epic = new Epic("Сходить в магазин", "купить еды");
         manager.addEpic(epic);
         SubTask subTask2 = new SubTask("Запустить посудомойку", "на режиме эко", epic.getId());
@@ -130,7 +133,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void whenUpdateTask() {
+    public void whenUpdateTask() {
         Task task = new Task("Task", "Task");
         manager.addTask(task);
         Task task1 = new Task("Task2", "Task2", task.getId());
@@ -139,16 +142,36 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void whenUpdateEpicSubtask() {
+    public void whenUpdateEpicSubtask() {
         Epic epic = new Epic("Эпик", "1");
+
         manager.addEpic(epic);
         Status epicStatus = epic.getStatus();
         SubTask subTask = new SubTask("Подзадача", "1", epic.getId());
         manager.addSubTask(subTask);
-        SubTask subTask1 = new SubTask("Новая подзадача", "1", subTask.getId(), Status.IN_PROGRESS);
-        manager.updateSubTask(subTask1);
+        SubTask subTask2 = new SubTask("Подзадача2", "2", epic.getId());
+        manager.addSubTask(subTask2);
+        SubTask subTask1 = new SubTask(subTask.getId(), "Новая подзадача", Status.IN_PROGRESS, "1", epic.getId());
+        SubTask subTask11 = new SubTask(subTask.getId(), "Новая подзадача", Status.DONE, "1", epic.getId());
+        SubTask subTask22 = new SubTask(subTask2.getId(), "Новая подзадача2", Status.DONE, "1", epic.getId());
         manager.updateEpic(epic);
+        assertEquals(Status.NEW, manager.getEpic(epic.getId()).getStatus(), "Неверный статус эпика");
+        manager.updateSubTask(subTask1);
+
         assertEquals(manager.getSubTask(subTask.getId()), subTask1, "Задачи не совпадают");
-        assertNotEquals(epicStatus, manager.getEpic(epic.getId()).getStatus(), "Статус не изменился");
+        assertEquals(epicStatus, manager.getEpic(epic.getId()).getStatus(), "Статус  изменился");
+
+        manager.updateEpic(epic);
+        assertEquals(Status.IN_PROGRESS, manager.getEpic(epic.getId()).getStatus(), "Неверный статус эпика");
+
+        manager.updateSubTask(subTask22);
+        manager.updateEpic(epic);
+        assertEquals(Status.IN_PROGRESS, manager.getEpic(epic.getId()).getStatus(), "Неверный статус эпика");
+
+        manager.updateSubTask(subTask11);
+        manager.updateEpic(epic);
+        assertEquals(Status.DONE, epic.getStatus(), "Неверный статус эпика");
     }
 }
+
+
