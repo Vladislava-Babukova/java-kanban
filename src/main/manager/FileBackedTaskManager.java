@@ -185,7 +185,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
         } else if (value.contains(TypeTask.TASK.toString())) {
 
-            if (taskValue[6] == null || taskValue[6].isEmpty()||taskValue[6].equals("null")) {
+            if (taskValue[6] == null || taskValue[6].isEmpty() || taskValue[6].equals("null")) {
                 return new Task(id, taskValue[2], status, taskValue[4]);
             } else {
                 try {
