@@ -79,7 +79,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     try {
                         fileWriter.write(toString(task) + "\n");
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw new ManagerSaveException("ошибка сохранения задачи");
                     }
                 });
             }
@@ -118,12 +118,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     .skip(1)
                     .forEach(line -> {
                         if (line.contains(TypeTask.EPIC.toString())) {
-                            try {
-                                Epic epic = (Epic) fromString(line);
-                                result.epics.put(epic.getId(), epic);
-                            } catch (NullPointerException e) {
-                                System.out.println("Эпик вернулся как null");
-                            }
+                            Epic epic = (Epic) fromString(line);
+                            result.epics.put(epic.getId(), epic);
+
                         } else if (line.contains(TypeTask.SUBTASK.toString())) {
                             SubTask subTask = (SubTask) fromString(line);
                             if (subTask != null) {
@@ -141,13 +138,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             }
 
                         } else {
-                            try {
-                                Task task = fromString(line);
-                                result.tasks.put(task.getId(), task);
-                                taskTreeMap.put(task.getStartTime(), task);
-                            } catch (NullPointerException e) {
-                                System.out.println("Задача вернулась как null");
-                            }
+
+                            Task task = fromString(line);
+                            result.tasks.put(task.getId(), task);
+                            taskTreeMap.put(task.getStartTime(), task);
+
                         }
                     });
 

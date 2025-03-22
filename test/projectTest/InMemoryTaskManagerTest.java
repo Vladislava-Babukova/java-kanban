@@ -17,7 +17,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     }
 
     @Test
-    public void WhenTimeCrosses() {
+    public void whenTimeCrosses() {
         imManager = getNewManager();
         imManager.deleteAllTasks();
         Task task = new Task("Task1", "1", "20.03.2024 11:10", 10);
