@@ -1,4 +1,4 @@
-package test.java;
+package projectTest;
 
 import main.manager.HistoryManager;
 import main.manager.Managers;
@@ -51,7 +51,7 @@ class InMemoryHistoryManagerTest {
     void whenDeleteInHistory() {
         Task task = new Task("Task", "Test", 0, Status.NEW);
         Epic epic = new Epic("Epic", "Test", 1);
-        SubTask subTask = new SubTask("Subtask", "Test", epic.getId(), 2, Status.NEW);
+        SubTask subTask = new SubTask(2, "Subtask", Status.NEW, "Test", epic.getId());
         historyManager.add(task);
         historyManager.add(epic);
         historyManager.add(subTask);
@@ -60,5 +60,11 @@ class InMemoryHistoryManagerTest {
         List<Task> history2 = historyManager.getHistory();
         assertNotEquals(history1.size(), history2.size(), "Задача не удалена из истории");
         assertEquals(history1.get(2), history2.get(1), "Задачи не последовательны");
+        historyManager.remove(2);
+        List<Task> history3 = historyManager.getHistory();
+        assertNotEquals(history3.size(), history2.size(), "Задача не удалена из истории");
+        historyManager.remove(0);
+        List<Task> history4 = historyManager.getHistory();
+        assertNotEquals(history4.size(), history3.size(), "Задача не удалена из истории");
     }
 }

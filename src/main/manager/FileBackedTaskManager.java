@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.DateTimeException;
+import java.time.Duration;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -45,6 +47,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public String toString(Task task) {
         TypeTask type;
         String string;
+        String stringTime;
         if (task.getClass() == Task.class) {
             type = TypeTask.TASK;
         } else if (task.getClass() == Epic.class) {
@@ -53,9 +56,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             type = TypeTask.SUBTASK;
         }
         string = task.getId() + "," + type + "," + task.getName() + "," + task.getStatus() + "," + task.getDetails();
-
+        stringTime = task.getStartTimeInString() + "," + task.getDuration();
+        if (type == TypeTask.TASK) {
+            string = string + "," + stringTime;
+        }
         if (type == TypeTask.SUBTASK) {
-            string = string + "," + ((SubTask) task).getEpicId();
+            string = string + "," + stringTime + "," + ((SubTask) task).getEpicId();
         }
         return string;
     }
@@ -66,22 +72,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         List<SubTask> subTasks = getAllSubTasks();
 
         try (BufferedWriter fileWriter = new BufferedWriter(new FileWriter(backupFile.toString()))) {
-            fileWriter.write("Id,type,name,status,details,epic_id" + "\n");
+            fileWriter.write("Id,type,name,status,details,startTime,duration,epic_id" + "\n");
             if (!(tasks == null)) {
-                for (Task task : tasks) {
-                    fileWriter.write(toString(task) + "\n");
-                }
+
+                tasks.forEach(task -> {
+                    try {
+                        fileWriter.write(toString(task) + "\n");
+                    } catch (IOException e) {
+                        throw new ManagerSaveException("ошибка сохранения задачи");
+                    }
+                });
             }
 
             if (!(epics == null)) {
-                for (Epic epic : epics) {
-                    fileWriter.write(toString(epic) + "\n");
-                }
+
+                epics.forEach(epic -> {
+                    try {
+                        fileWriter.write(toString(epic) + "\n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
             if (!(subTasks == null)) {
-                for (SubTask subTask : subTasks) {
-                    fileWriter.write(toString(subTask) + "\n");
-                }
+
+                subtasks.values().forEach(st -> {
+                    try {
+                        fileWriter.write(toString(st) + "\n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Невозможно работать с файлом");
@@ -90,48 +111,44 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(Path backupFile) {
         final FileBackedTaskManager result = new FileBackedTaskManager();
-        String back = "";
+
         try {
-            back = Files.readString(Path.of(backupFile.toString()));
+
+            Files.lines(backupFile)
+                    .skip(1)
+                    .forEach(line -> {
+                        if (line.contains(TypeTask.EPIC.toString())) {
+                            Epic epic = (Epic) fromString(line);
+                            result.epics.put(epic.getId(), epic);
+
+                        } else if (line.contains(TypeTask.SUBTASK.toString())) {
+                            SubTask subTask = (SubTask) fromString(line);
+                            if (subTask != null) {
+                                result.subtasks.put(subTask.getId(), subTask);
+                                taskTreeMap.put(subTask.getStartTime(), subTask);
+                                Epic epic = result.epics.get(subTask.getEpicId());
+                                if (epic != null) {
+                                    List<Integer> subtasksList = epic.getSubTasksinEpic();
+                                    subtasksList.add(subTask.getId());
+                                    epic.setSubTasksList(subtasksList);
+                                    result.updateEpic(epic);
+                                } else {
+                                    throw new ManagerLoadExeption("Ошибка привязки к эпикам");
+                                }
+                            }
+
+                        } else {
+
+                            Task task = fromString(line);
+                            result.tasks.put(task.getId(), task);
+                            taskTreeMap.put(task.getStartTime(), task);
+
+                        }
+                    });
+
         } catch (IOException exception) {
             throw new ManagerLoadExeption("Ошибка чтения файла");
         }
-        String[] tasks = back.split("\n");
-        for (int i = 1; i < tasks.length; i++) {
-            if (tasks[i].contains(TypeTask.EPIC.toString())) {
-                try {
-                    Epic epic = (Epic) fromString(tasks[i]);
-                    result.epics.put(epic.getId(), epic);
-                } catch (NullPointerException e) {
-                    System.out.println("Эпик вернулся как null");
-                }
-            } else if (tasks[i].contains(TypeTask.SUBTASK.toString())) {
-
-                SubTask subTask = (SubTask) fromString(tasks[i]);
-                if (!(subTask == null)) {
-                    result.subtasks.put(subTask.getId(), subTask);
-                    Epic epic;
-                    epic = result.epics.get(subTask.getEpicId());
-                    if (!(epic == null)) {
-                        List<Integer> subtasksList = epic.getSubTasksinEpic();
-                        subtasksList.add(subTask.getId());
-                        epic.setSubTasksList(subtasksList);
-                        result.updateEpic(epic);
-                    } else {
-                        throw new ManagerLoadExeption("Ошибка привязки к эпикам");
-                    }
-                }
-
-            } else {
-                try {
-                    Task task = fromString(tasks[i]);
-                    result.tasks.put(task.getId(), task);
-                } catch (NullPointerException e) {
-                    System.out.println("Задача вернулась как null");
-                }
-            }
-        }
-
         return result;
     }
 
@@ -146,15 +163,41 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
 
         int id = Integer.parseInt(taskValue[0]);
-
+        long duration;
         if (value.contains(TypeTask.EPIC.toString())) {
             return new Epic(id, taskValue[2], status, taskValue[4]);
         } else if (value.contains(TypeTask.SUBTASK.toString())) {
-            int epicId = Integer.parseInt(taskValue[5]);
+            int epicId;
+            if (taskValue.length > 6) {
+                epicId = Integer.parseInt(taskValue[7]);
+                Duration duration1 = Duration.parse(taskValue[6]);
+                duration = duration1.toMinutes();
+                return new SubTask(taskValue[2], taskValue[4], epicId, id, status, taskValue[5], duration);
+            } else {
+                epicId = Integer.parseInt(taskValue[5]);
+                return new SubTask(id, taskValue[2], status, taskValue[4], epicId);
 
-            return new SubTask(taskValue[2], taskValue[4], epicId, id, status);
+            }
         } else if (value.contains(TypeTask.TASK.toString())) {
-            return new Task(id, taskValue[2], status, taskValue[4]);
+
+            if (taskValue[6] == null || taskValue[6].isEmpty() || taskValue[6].equals("null")) {
+                return new Task(id, taskValue[2], status, taskValue[4]);
+            } else {
+                try {
+                    Duration duration1 = Duration.parse(taskValue[6]);
+                    duration = duration1.toMinutes();
+                    return new Task(taskValue[2], taskValue[4], id, status, taskValue[5], duration);
+
+                } catch (java.time.format.DateTimeParseException e) {
+
+                    new DateTimeException("неверный формат продолжительности");
+
+                    return null;
+                }
+
+            }
+
+
         }
         return null;
     }
@@ -254,7 +297,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public List<SubTask> getSubtaskForEpic(Epic epic) {
-        return super.getSubtaskForEpic(epic);
+        if (epic != null) {
+            return super.getSubtaskForEpic(epic);
+        } else {
+            return null;
+        }
     }
 
     @Override

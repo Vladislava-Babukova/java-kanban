@@ -1,4 +1,4 @@
-package test.java;
+package projectTest;
 
 import main.manager.FileBackedTaskManager;
 import main.manager.HistoryManager;
