@@ -144,9 +144,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void whenUpdateEpicSubtask() {
         Epic epic = new Epic("Эпик", "1");
-
         manager.addEpic(epic);
-        Status epicStatus = epic.getStatus();
+
         SubTask subTask = new SubTask("Подзадача", "1", epic.getId());
         manager.addSubTask(subTask);
         SubTask subTask2 = new SubTask("Подзадача2", "2", epic.getId());
@@ -154,11 +153,14 @@ abstract class TaskManagerTest<T extends TaskManager> {
         SubTask subTask1 = new SubTask(subTask.getId(), "Новая подзадача", Status.IN_PROGRESS, "1", epic.getId());
         SubTask subTask11 = new SubTask(subTask.getId(), "Новая подзадача", Status.DONE, "1", epic.getId());
         SubTask subTask22 = new SubTask(subTask2.getId(), "Новая подзадача2", Status.DONE, "1", epic.getId());
+        Status epicStatus = epic.getStatus();
         manager.updateEpic(epic);
         assertEquals(Status.NEW, manager.getEpic(epic.getId()).getStatus(), "Неверный статус эпика");
-        manager.updateSubTask(subTask1);
 
+        manager.updateSubTask(subTask1);
+        epicStatus = epic.getStatus();
         assertEquals(manager.getSubTask(subTask.getId()), subTask1, "Задачи не совпадают");
+
         assertEquals(epicStatus, manager.getEpic(epic.getId()).getStatus(), "Статус  изменился");
 
         manager.updateEpic(epic);
