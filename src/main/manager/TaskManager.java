@@ -44,5 +44,8 @@ public interface TaskManager {
 
     public Integer checIDCustom();
 
+    public List<Object> getPrioritizedTasks();
+
+    public Boolean timeMatchCheck(Task task);
 }
 

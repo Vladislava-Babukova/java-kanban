@@ -20,7 +20,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
-    public void timeMatchCheck(Task task) {
+    public Boolean timeMatchCheck(Task task) {
 
         if (task != null) {
             if (task.getStartTime() != null && task.getDuration() != null) {
@@ -47,9 +47,17 @@ public class InMemoryTaskManager implements TaskManager {
                 }
                 if (isCeilingkey && isFloorkey) {
                     taskTreeMap.put(task.getStartTime(), task);
+                    return true;
+                } else {
+                    return false;
                 }
+            } else {
+                return false;
             }
+        } else {
+            return false;
         }
+
     }
 
     public List<Object> getPrioritizedTasks() {
@@ -59,16 +67,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     public Epic detectEpicTime(Epic epic) {
 
-        System.out.println("метод вызван");
+
         LocalDateTime newStartTime = epic.getSubTasksinEpic().stream()
                 .map(id -> subtasks.get(id))
                 .filter(subTask -> subTask != null && subTask.getStartTime() != null)
                 .map(Task::getStartTime)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
-        System.out.println("newStartTime" + newStartTime);
+
         epic.setStartTime(newStartTime);
-        System.out.println("Вывод времени эпика" + epic.getStartTime());
+
         LocalDateTime newEndTime = epic.getSubTasksinEpic().stream()
                 .map(id -> subtasks.get(id))
                 .filter(subTask -> subTask != null && subTask.getEndTime() != null)
@@ -134,10 +142,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.containsKey(newtask.getId())) {
             if (newtask.getStartTime() != null) {
                 taskTreeMap.remove(tasks.get(newtask.getId()).getStartTime());
-                timeMatchCheck(newtask);
             }
             tasks.put(newtask.getId(), newtask);
-
+            timeMatchCheck(newtask);
         }
     }
 
@@ -147,11 +154,13 @@ public class InMemoryTaskManager implements TaskManager {
             if (subtasks.containsKey(newSubTask.getId())) {
                 if (newSubTask.getStartTime() != null) {
                     taskTreeMap.remove(subtasks.get(newSubTask.getId()).getStartTime());
-                    timeMatchCheck(newSubTask);
+
                 }
                 subtasks.put(newSubTask.getId(), newSubTask);
+                timeMatchCheck(newSubTask);
             }
             detectEpicTime(epics.get(newSubTask.getEpicId()));
+            epicStatus(epics.get(newSubTask.getEpicId()));
         }
     }
 
@@ -195,7 +204,7 @@ public class InMemoryTaskManager implements TaskManager {
             }
         });
 
-        idCustom++;
+        ++idCustom;
         return idCustom;
     }
 
@@ -224,23 +233,35 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTask(int id) {
-        Task task = tasks.get(id);
-        historyManager.add(task);
-        return task;
+        if (tasks.containsKey(id)) {
+            Task task = tasks.get(id);
+            historyManager.add(task);
+            return task;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Epic getEpic(int id) {
-        Epic epic = epics.get(id);
-        historyManager.add(epic);
-        return epic;
+        if (epics.containsKey(id)) {
+            Epic epic = epics.get(id);
+            historyManager.add(epic);
+            return epic;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public SubTask getSubTask(int id) {
-        SubTask subTask = subtasks.get(id);
-        historyManager.add(subTask);
-        return subTask;
+        if (subtasks.containsKey(id)) {
+            SubTask subTask = subtasks.get(id);
+            historyManager.add(subTask);
+            return subTask;
+        } else {
+            return null;
+        }
     }
 
     @Override
