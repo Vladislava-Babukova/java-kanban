@@ -25,14 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class HttpTaskServerTest {
     private HttpTaskServer server;
     private TaskManager manager;
-    private Gson gson;
-
+    private Gson gson = GsonBuilder.getGson();
+    ;
+    String endpoint;
 
     @BeforeEach
     void init() throws IOException {
         manager = Managers.getTaskManager();
         server = new HttpTaskServer(manager);
-        gson = GsonBuilder.getGson();
         server.start();
 
     }
@@ -43,17 +43,40 @@ public class HttpTaskServerTest {
         server.stop();
     }
 
+    HttpResponse<String> httpMethodPOST(String endpoint, String jsonTask) throws IOException, InterruptedException {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + endpoint);
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
+                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        return response;
+    }
+
+    HttpResponse<String> httpMethodGET(String endpoint) throws IOException, InterruptedException {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + endpoint);
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
+                .GET().build();
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        return response;
+    }
+
+    HttpResponse<String> httpMethodDELETE(String endpoint) throws IOException, InterruptedException {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + endpoint);
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
+                .DELETE().build();
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        return response;
+    }
 
     @Test
     void createTaskTest() throws IOException, InterruptedException {
         Task task = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         String jsonTask = gson.toJson(task);
+        endpoint = "/tasks";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(201, response.statusCode());
         assertEquals(1, manager.getAllTasks().size(), "Количество задач не совпадает");
     }
@@ -62,12 +85,8 @@ public class HttpTaskServerTest {
     void createEpicTest() throws IOException, InterruptedException {
         Epic epic = new Epic("Epic1", "Epic1");
         String jsonTask = gson.toJson(epic);
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        endpoint = "/epics";
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(201, response.statusCode());
         assertEquals(1, manager.getAllEpics().size(), "Количество эпиков не совпадает");
     }
@@ -78,12 +97,9 @@ public class HttpTaskServerTest {
         manager.addEpic(epic);
         SubTask subTask1 = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         String jsonTask = gson.toJson(subTask1);
+        endpoint = "/subtasks";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(201, response.statusCode());
         assertEquals(1, manager.getAllSubTasks().size(), "Количество задач не совпадает");
         assertEquals(1, manager.getSubtaskForEpic(epic).size(), "Количество подзадач внутри эпика не совпадает");
@@ -95,12 +111,9 @@ public class HttpTaskServerTest {
         manager.addTask(task);
         Task task1 = new Task("Task1", "Task1", 1, Status.IN_PROGRESS, "11.03.2024 10:20", 10L);
         String jsonTask = gson.toJson(task1);
+        endpoint = "/tasks/1";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(201, response.statusCode());
         assertEquals(1, manager.getAllTasks().size(), "Количество задач не совпадает");
         assertEquals(Status.IN_PROGRESS, manager.getTask(1).getStatus(), "Статус не совпадает");
@@ -114,12 +127,9 @@ public class HttpTaskServerTest {
         manager.addSubTask(subTask);
         SubTask subTask1 = new SubTask("Subtask1", "subtask1", epic.getId(), 2, Status.IN_PROGRESS, "11.03.2024 22:22", 17);
         String jsonTask = gson.toJson(subTask1);
+        endpoint = "/subtasks/2";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(201, response.statusCode());
         assertEquals(1, manager.getAllSubTasks().size(), "Количество задач не совпадает");
         assertEquals(Status.IN_PROGRESS, manager.getSubTask(2).getStatus(), "Статус не совпадает");
@@ -131,13 +141,9 @@ public class HttpTaskServerTest {
         Task task = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         manager.addTask(task);
         String jsonTask = gson.toJson(task);
+        endpoint = "/tasks/1";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks/1");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getAllTasks().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -147,13 +153,9 @@ public class HttpTaskServerTest {
     void getAllTaskTest() throws IOException, InterruptedException {
         Task task = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         manager.addTask(task);
+        endpoint = "/tasks";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         String jsonTasks = gson.toJson(manager.getAllTasks());
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getAllTasks().size(), "Неверное количество задач");
@@ -167,12 +169,9 @@ public class HttpTaskServerTest {
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
         String jsonTask = gson.toJson(subTask);
+        endpoint = "/subtasks/2";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtasks/2");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getAllSubTasks().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -185,12 +184,8 @@ public class HttpTaskServerTest {
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
         String jsonTask = gson.toJson(manager.getAllSubTasks());
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        endpoint = "/subtasks";
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getAllSubTasks().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -201,13 +196,9 @@ public class HttpTaskServerTest {
         Epic epic = new Epic("Epic1", "Epic1");
         manager.addEpic(epic);
         String jsonTask = gson.toJson(epic);
+        endpoint = "/epics/1";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics/1");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getAllEpics().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -218,13 +209,9 @@ public class HttpTaskServerTest {
         Epic epic = new Epic("Epic1", "Epic1");
         manager.addEpic(epic);
         String jsonTask = gson.toJson(manager.getAllEpics());
+        endpoint = "/epics";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getAllEpics().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -237,13 +224,9 @@ public class HttpTaskServerTest {
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
         String jsonTask = gson.toJson(manager.getSubtaskForEpic(epic));
+        endpoint = "/epics/1/subtasks";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics/1/subtasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getSubtaskForEpic(epic).size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -255,13 +238,9 @@ public class HttpTaskServerTest {
         manager.addTask(task);
         manager.getTask(task.getId());
         String jsonTask = gson.toJson(manager.getHistory());
+        endpoint = "/history";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/history");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getHistory().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -272,13 +251,9 @@ public class HttpTaskServerTest {
         Task task = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         manager.addTask(task);
         String jsonTask = gson.toJson(manager.getPrioritizedTasks());
+        endpoint = "/prioritized";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/prioritized");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(200, response.statusCode());
         assertEquals(1, manager.getPrioritizedTasks().size(), "Неверное количество задач");
         assertEquals(jsonTask, response.body(), "Задача вернулась неверно");
@@ -289,12 +264,9 @@ public class HttpTaskServerTest {
     void deleteTaskTest() throws IOException, InterruptedException {
         Task task = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         manager.addTask(task);
+        endpoint = "/tasks/1";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks/1");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .DELETE().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodDELETE(endpoint);
         assertEquals(200, response.statusCode());
         assertTrue(manager.getAllTasks().isEmpty(), "Список задач не пуст");
     }
@@ -305,12 +277,9 @@ public class HttpTaskServerTest {
         manager.addEpic(epic);
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
+        endpoint = "/subtasks/2";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtasks/2");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .DELETE().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodDELETE(endpoint);
         assertEquals(200, response.statusCode());
         assertTrue(manager.getAllSubTasks().isEmpty(), "Список подзадач не пуст");
         assertTrue(manager.getSubtaskForEpic(epic).isEmpty(), "Список подзадач в эпике не пуст");
@@ -322,12 +291,9 @@ public class HttpTaskServerTest {
         manager.addEpic(epic);
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
+        endpoint = "/epics/1";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics/1");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .DELETE().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodDELETE(endpoint);
         assertEquals(200, response.statusCode());
         assertTrue(manager.getAllSubTasks().isEmpty(), "Список подзадач не пуст");
         assertTrue(manager.getAllEpics().isEmpty(), "Список подзадач в эпике не пуст");
@@ -339,12 +305,9 @@ public class HttpTaskServerTest {
         manager.addTask(task);
         Task task1 = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         String jsonTask = gson.toJson(task1);
+        endpoint = "/tasks";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(406, response.statusCode());
         assertEquals(1, manager.getAllTasks().size(), "Количество задач не совпадает");
     }
@@ -353,14 +316,9 @@ public class HttpTaskServerTest {
     void getNotExistentTaskTest() throws IOException, InterruptedException {
         Task task = new Task("Task1", "Task1", "11.03.2024 10:20", 10L);
         manager.addTask(task);
-        String jsonTask = gson.toJson(task);
+        endpoint = "/tasks/2";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/tasks/2");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(404, response.statusCode());
         assertEquals(1, manager.getAllTasks().size(), "Неверное количество задач");
 
@@ -372,13 +330,10 @@ public class HttpTaskServerTest {
         manager.addEpic(epic);
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
+        endpoint = "/epics/2";
 
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics/2");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(404, response.statusCode());
         assertEquals(1, manager.getAllEpics().size(), "Неверное количество задач");
 
@@ -390,13 +345,9 @@ public class HttpTaskServerTest {
         manager.addEpic(epic);
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
+        endpoint = "/subtask/1";
 
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtask/1");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(404, response.statusCode());
         assertEquals(1, manager.getAllSubTasks().size(), "Неверное количество задач");
 
@@ -408,12 +359,9 @@ public class HttpTaskServerTest {
         manager.addEpic(epic);
         SubTask subTask = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         manager.addSubTask(subTask);
+        endpoint = "/epics/2/subtasks";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/epics/2/subtasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .GET().build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodGET(endpoint);
         assertEquals(404, response.statusCode());
     }
 
@@ -425,12 +373,9 @@ public class HttpTaskServerTest {
         manager.addSubTask(subTask);
         SubTask subTask1 = new SubTask("Subtask1", "subtask1", epic.getId(), "11.03.2024 22:22", 17);
         String jsonTask = gson.toJson(subTask1);
+        endpoint = "/subtasks";
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        URI uri = URI.create("http://localhost:" + HttpTaskServer.PORT + "/subtasks");
-        HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask)).build();
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpMethodPOST(endpoint, jsonTask);
         assertEquals(406, response.statusCode());
         assertEquals(1, manager.getAllSubTasks().size(), "Количество задач не совпадает");
     }
